@@ -1,4 +1,4 @@
-name: git mirrors
+name: Sync git mirrors
 
 on:
   push:

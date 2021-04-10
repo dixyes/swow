@@ -1,4 +1,4 @@
-name: tests
+name: Make tests
 
 #on: [gollum]
 on: [push, pull_request]
