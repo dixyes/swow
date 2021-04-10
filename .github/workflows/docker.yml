@@ -4,6 +4,7 @@ on: [push]
 
 jobs:
   run-actions:
+    if: ${{ env.DOCKER_BUILD_REPO && secrets.DOCKER_ACTION_TOKEN }}
     name: Notify ${{ env.DOCKER_BUILD_REPO }} to update
     runs-on: ubuntu-latest
     steps:
