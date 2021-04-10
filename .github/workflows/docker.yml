@@ -13,12 +13,12 @@ jobs:
         run: |
           if [ x"${{ secrets.DOCKER_ACTION_TOKEN }}" = x"" ]
           then
-            echo DOCKER_ACTION_TOKEN secret is not set >&2
+            echo "::error::DOCKER_ACTION_TOKEN secret is not set" >&2
             exit 1
           fi
           if [ x"${DOCKER_ACTION_REPO}" = x"" ]
           then
-            echo DOCKER_ACTION_REPO env is not set >&2
+            echo "::error::DOCKER_ACTION_REPO env is not set" >&2
             exit 1
           fi
 
