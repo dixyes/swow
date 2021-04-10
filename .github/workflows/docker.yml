@@ -7,7 +7,7 @@ jobs:
     name: Notify action repo to run update workflow
     runs-on: ubuntu-latest
     steps:
-      - name: Check if we know which repo is action repo
+      - name: Check if we know which repo is workflow repo
         id: check
         continue-on-error: true
         run: |
