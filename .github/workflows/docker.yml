@@ -26,7 +26,7 @@ jobs:
         if: steps.check.outcome == 'success'
         run: |
           ref=${{ github.ref }}
-          echo curl \
+          curl \
             -X POST \
             -H "accept: application/vnd.github.v3+json" \
             -H "authorization"="Bearer ${Token}" \
