@@ -26,9 +26,10 @@ jobs:
         if: steps.check.outcome == 'success'
         run: |
           ref=${{ github.ref }}
+          rev=$GITHUB_SHA
           curl \
             -X POST \
             -H "accept: application/vnd.github.v3+json" \
             -H "authorization"="Bearer ${Token}" \
             https://api.github.com/repos/${{ secrets.DOCKER_ACTION_REPO }}/actions/workflows/update.yml/dispatches \
-            -d '{"event_type":"Update from Swow", "client_payload":{"ref":"'${ref##*/}'"}}'
+            -d '{"event_type":"Update from Swow", "client_payload":{"ref":"'${ref##*/}'","rev":"'${rev}'"}}'
