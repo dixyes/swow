@@ -32,4 +32,4 @@ jobs:
             -H "accept: application/vnd.github.v3+json" \
             -H "authorization: Bearer ${{ secrets.DOCKER_ACTION_TOKEN }}" \
             https://api.github.com/repos/${{ secrets.DOCKER_ACTION_REPO }}/actions/workflows/update.yml/dispatches \
-            -d '{"ref:":"master", "inputs":{"swow_ref":"'${ref##*/}'","swow_rev":"'${rev}'"}}'
+            -d '{"ref":"master", "inputs":{"swow_ref":"'${ref##*/}'","swow_rev":"'${rev}'"}}'
