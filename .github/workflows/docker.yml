@@ -5,7 +5,7 @@ on: [ push ]
 jobs:
   run-actions:
     if: env.DOCKER_ACTION_REPO && secrets.DOCKER_ACTION_TOKEN
-    name: Notify ${{ env.DOCKER_ACTION_REPO }} to update
+    name: Notify action repo to run update action
     runs-on: ubuntu-latest
     steps:
       - name: Use Github REST API to start workflow
