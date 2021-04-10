@@ -4,8 +4,8 @@ on: [ push ]
 
 jobs:
   run-actions:
-    if: env.DOCKER_BUILD_REPO && secrets.DOCKER_ACTION_TOKEN
-    name: Notify ${{ env.DOCKER_BUILD_REPO }} to update
+    if: env.DOCKER_ACTION_REPO && secrets.DOCKER_ACTION_TOKEN
+    name: Notify ${{ env.DOCKER_ACTION_REPO }} to update
     runs-on: ubuntu-latest
     steps:
       - name: Use Github REST API to start workflow
@@ -13,5 +13,5 @@ jobs:
           echo curl \
             -X POST \
             -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/repos/${{ env.DOCKER_BUILD_REPO }}/actions/workflows/update.yml/dispatches \
+            https://api.github.com/repos/${{ env.DOCKER_ACTION_REPO }}/actions/workflows/update.yml/dispatches \
             -d '{"event_type":"Update from Swow", "client_payload":{"ref":}}'
