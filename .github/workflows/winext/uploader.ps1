@@ -41,7 +41,7 @@ $note = "`n## Hashes and notes`n`n" + `
     "| - | - | - | - | - |`n"
 
 # read all jsons for all dlls
-Get-ChildItem . | Sort-Object -Property Name -Descending | ForEach-Object -Process {
+Get-ChildItem . | Sort-Object -Property Name | ForEach-Object -Process {
     if($_.Name.EndsWith(".dll")){
         $fn = $_.Name
         $jsonfn = "${fn}.json"
