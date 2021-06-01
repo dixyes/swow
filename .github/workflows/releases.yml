@@ -118,26 +118,6 @@ jobs:
           phparch: ${{ matrix.arch }}
           install: "0"
           conf-args: "--enable-swow-ssl --enable-swow-curl"
-      - name: Generate information about this dll
-        shell: powershell
-        run: |
-          $fn = "${{ env.dllname }}"
-          Copy-Item ext\${{ matrix.arch }}\Release${{ matrix.ts == 1 && '_TS' || '' }}\php_swow.dll $fn
-          @{
-            "name" = $fn;
-            "size" = (Get-Item $fn).Length;
-            "hash" = (Get-FileHash -Algorithm SHA256 $fn).Hash;
-            "result" = "${{ steps.ext-test.outcome }}";
-            "runid" = "${{ github.run_id }}";
-            "jobname" = "PHP-${{ matrix.phpver }}-${{ matrix.arch }}-${{ (matrix.ts == '0') && 'N' || '' }}TS-${{ (matrix.os == 'windows-latest') && 'VS16' || 'VC15' }}";
-          } | ConvertTo-Json -Compress | Out-File "${fn}.json" -Encoding ASCII # for no BOM
-      - name: Upload artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: "${{ steps.getref.outputs.ref }}"
-          path: |
-            ${{ env.dllname }}
-            ${{ env.dllname }}.json
       - name: Prepare php for test
         id: php-inst
         continue-on-error: true
@@ -176,6 +156,26 @@ jobs:
             --set-timeout 30 ^
             --color ^
             ext\tests
+      - name: Generate information about this dll
+        shell: powershell
+        run: |
+          $fn = "${{ env.dllname }}"
+          Copy-Item ext\${{ matrix.arch }}\Release${{ matrix.ts == 1 && '_TS' || '' }}\php_swow.dll $fn
+          @{
+            "name" = $fn;
+            "size" = (Get-Item $fn).Length;
+            "hash" = (Get-FileHash -Algorithm SHA256 $fn).Hash;
+            "result" = "${{ steps.ext-test.outcome }}";
+            "runid" = "${{ github.run_id }}";
+            "jobname" = "PHP-${{ matrix.phpver }}-${{ matrix.arch }}-${{ (matrix.ts == '0') && 'N' || '' }}TS-${{ (matrix.os == 'windows-latest') && 'VS16' || 'VC15' }}";
+          } | ConvertTo-Json -Compress | Out-File "${fn}.json" -Encoding ASCII # for no BOM
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: "${{ steps.getref.outputs.ref }}"
+          path: |
+            ${{ env.dllname }}
+            ${{ env.dllname }}.json
       # see notes at cache step
       # TODO: remove this step when upstream fixed the bug
       - name: Remove ini and dll to avoid them being cached
