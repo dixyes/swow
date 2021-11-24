@@ -23,9 +23,24 @@ err()
 installyum()
 {
     info Installing dependencies using yum
+    # enable codeready for el 8
+    dnf config-manager --set-enabled codeready-builder-for-rhel-8-x86_64-rpms ||
+    # enable powertools for el 8 forks
+    for fn in \
+        /etc/yum.repos.d/CentOS-Linux-PowerTools.repo \
+        /etc/yum.repos.d/CentOS-PowerTools.repo \
+        /etc/yum.repos.d/almalinux-powertools.repo \
+        /etc/yum.repos.d/Rocky-PowerTools.repo
+    do
+        [ -f "$fn" ] &&
+        sed -i 's/^enabled=0$/enabled=1/g' $fn
+    done
+    yum update -yy
+    # enable epel for el 7 things
+    yum install -yy epel-release
     yum update -yy
     yum groupinstall -yy "Development Tools"
-    yum install -yy sqlite-devel libxml2-devel libcurl-devel openssl-devel
+    yum install -yy sqlite-devel libxml2-devel libcurl-devel openssl-devel re2c bison
 }
 
 installdnf()
@@ -33,41 +48,47 @@ installdnf()
     info Installing dependencies using dnf
     dnf update -yy
     dnf groupinstall -yy "Development Tools"
-    dnf install -yy sqlite-devel libxml2-devel libcurl-devel openssl-devel
+    dnf install -yy sqlite-devel libxml2-devel libcurl-devel openssl-devel re2c bison autoconf
 }
 
 installapt()
 {
     info Installing dependencies using api
     apt-get update -yyq
-    apt-get install --no-install-recommends -yyq libsqlite3-dev libxml2-dev libcurl4-openssl-dev libssl-dev build-essential
+    apt-get install --no-install-recommends -yyq libsqlite3-dev libxml2-dev libcurl4-openssl-dev libssl-dev build-essential re2c bison autoconf pkgconf
 }
 
 installpacman()
 {
     info Installing dependencies using pacman
     pacman -Syyu --noconfirm --noprogressbar
-    pacman -S --noconfirm --noprogressbar sqlite libxml2 curl openssl base-devel
+    pacman -S --noconfirm --noprogressbar sqlite libxml2 curl openssl base-devel re2c bison
 }
 
 installapk()
 {
     info Installing dependencies using apk
     apk update
-    apk add --no-progress sqlite-dev libxml2-dev curl-dev alpine-sdk autoconf automake
+    apk add --no-progress sqlite-dev libxml2-dev curl-dev alpine-sdk autoconf automake re2c bison
 }
 
 installzypper()
 {
     info Installing dependencies using zypper
     zypper --non-interactive update
-    zypper --non-interactive install sqlite3-devel libxml2-devel libcurl-devel libopenssl-devel patterns-devel-C-C++-devel_C_C++
+    zypper --non-interactive install sqlite3-devel libxml2-devel libcurl-devel libopenssl-devel patterns-devel-C-C++-devel_C_C++ re2c bison
 }
 
 buildphp()
 {
-    info Configuring PHP
+
     cd "${PHP_SRC}"
+    if [ ! -f ./configure ]
+    then
+        info Autoconf PHP
+        ./buildconf --force
+    fi
+    info Configuring PHP
     ./configure --disable-phpdbg --disable-cgi --disable-fpm --prefix="${PREFIX}" --with-openssl --with-curl
     info Building PHP
     make -j"${cpunum-2}"
