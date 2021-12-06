@@ -53,9 +53,9 @@
 ;*******************************************************
 
  AREA |.text|, CODE, READONLY, ALIGN=4, CODEALIGN
- EXPORT make_fcontext
+ EXPORT cat_coroutine_context_make
  IMPORT _exit
-make_fcontext proc
+cat_coroutine_context_make proc
     ; shift address in x0 (allocated stack) to lower 16 byte boundary
     and x0, x0, ~0xF
 

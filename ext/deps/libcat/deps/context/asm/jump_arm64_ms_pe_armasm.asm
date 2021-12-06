@@ -53,8 +53,8 @@
 ;*******************************************************
 
  AREA |.text|, CODE, READONLY, ALIGN=4, CODEALIGN
- EXPORT jump_fcontext
-jump_fcontext proc
+ EXPORT cat_coroutine_context_jump
+cat_coroutine_context_jump proc
     ; prepare stack for GP + FPU
     sub  sp, sp, #0xb0
 
