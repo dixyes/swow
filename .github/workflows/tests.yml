@@ -393,6 +393,11 @@ jobs:
             --modules php_swow.dll `
             -- C:\tools\php\php.exe C:\tools\php\composer.phar test-library
 
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        with:
+          detached: true
+
       - name: Run PHPT from php-src
         shell: pwsh
         id: test-php-src
