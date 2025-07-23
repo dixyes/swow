@@ -387,7 +387,7 @@ jobs:
 
       - name: Setup Visual Studio build tools
         shell: pwsh
-        if: matrix.vsver == "16"
+        if: matrix.vsver == '16'
         run: |
           Invoke-WebRequest -Uri https://aka.ms/vs/16/release/vs_buildtools.exe -OutFile vs_buildtools.exe
           .\vs_buildtools.exe `
