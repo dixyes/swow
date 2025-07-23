@@ -18,24 +18,24 @@ env:
 jobs:
   builddlls:
     # this name is used after, change it with cautious
-    name: Build dll for PHP-${{ matrix.php-version }}-${{ matrix.arch }}-${{ (matrix.ts == '0') && 'N' || '' }}TS-${{ (matrix.image == 'windows-2019') && 'VS16' || 'VS17' }}
-    runs-on: ${{ matrix.image }}
+    name: Build dll for PHP-${{ matrix.php-version }}-${{ matrix.arch }}-${{ (matrix.ts == '0') && 'N' || '' }}TS-VS${{ matrix.vsver }}
+    runs-on: windows-2025
     strategy:
       fail-fast: false
       matrix:
         php-version: ["8.3", "8.2", "8.1", "8.0"]
         arch: ["x64"]
         ts: ["0", "1"]
-        image: [ "windows-2019" ]
+        vsver: ["16"]
         include:
           - php-version: "8.4"
             arch: "x64"
             ts: "0"
-            image: "windows-2022"
+            vsver: "17"
           - php-version: "8.4"
             arch: "x64"
             ts: "1"
-            image: "windows-2022"
+            vsver: "17"
       max-parallel: 10
     outputs:
       ref: ${{ steps.getref.outputs.ref }}

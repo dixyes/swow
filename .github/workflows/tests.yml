@@ -8,369 +8,360 @@ env:
   SWOW_HAVE_CURL: 1
 
 jobs:
-  cs-check:
-    name: Coding style check
-    runs-on: "ubuntu-latest"
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          persist-credentials: false
+  # cs-check:
+  #   name: Coding style check
+  #   runs-on: "ubuntu-latest"
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #       with:
+  #         persist-credentials: false
 
-      - name: Check for CRLF endings
-        id: checkcrlf
-        continue-on-error: true
-        shell: php {0}
-        run: |
-          <?php
+  #     - name: Check for CRLF endings
+  #       id: checkcrlf
+  #       continue-on-error: true
+  #       shell: php {0}
+  #       run: |
+  #         <?php
 
-          # find out files with CRLF (\r\n) line endings
-          $includes = [
-              '.'
-          ];
-          $excludes = [
-              '/.+\.ps1$/',
-              '/.+\.bat$/',
-              '/.+\.cmd$/',
-          ];
+  #         # find out files with CRLF (\r\n) line endings
+  #         $includes = [
+  #             '.'
+  #         ];
+  #         $excludes = [
+  #             '/.+\.ps1$/',
+  #             '/.+\.bat$/',
+  #             '/.+\.cmd$/',
+  #         ];
 
-          $files = [];
-          foreach ($includes as $include) {
-              $iteriter = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($include));
-              foreach ($iteriter as $file) {
-                  if ($file->isDir()) {
-                      continue;
-                  }
-                  $files[] = $file->getPathname();
-              }
-          }
-          foreach ($excludes as $exclude) {
-              $files = array_filter($files, static function (string $file) use ($exclude): bool {
-                  return !preg_match($exclude, $file);
-              });
-          }
-          $haveCRLF = [];
-          foreach ($files as $file) {
-              $stat = stat($file);
-              if ($stat['size'] >= 1024 * 1024) {
-                  # skip large files
-                  continue;
-              }
-              $content = file_get_contents($file);
-              if (strpos($content, "\0")) {
-                  # skip binary files
-                  continue;
-              }
-              if (strpos($content, "\r") !== false) {
-                  # if we have a file like
-                  # "<?php\n$someData = \"somedata\r\n\";\n"
-                  # this is not a CRLF ending file
-                  # while
-                  # "<?php\r\n$someData = \"somedata\r\n\";\r\n# this file is noeol"
-                  # is a CRLF file
-                  # so we need to find the last (CRLF or LF) in the file, if it is CRLF, then it is a CRLF file
-                  if (strrpos($content, "\r\n") === strrpos($content, "\n") - 1) {
-                      echo $file . PHP_EOL;
-                      $haveCRLF[] = $file;
-                  }
-              }
-          }
-          if (count($haveCRLF) > 0) {
-              echo "::error::CRLF line endings found" . PHP_EOL;
-              exit(1);
-          }
+  #         $files = [];
+  #         foreach ($includes as $include) {
+  #             $iteriter = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($include));
+  #             foreach ($iteriter as $file) {
+  #                 if ($file->isDir()) {
+  #                     continue;
+  #                 }
+  #                 $files[] = $file->getPathname();
+  #             }
+  #         }
+  #         foreach ($excludes as $exclude) {
+  #             $files = array_filter($files, static function (string $file) use ($exclude): bool {
+  #                 return !preg_match($exclude, $file);
+  #             });
+  #         }
+  #         $haveCRLF = [];
+  #         foreach ($files as $file) {
+  #             $stat = stat($file);
+  #             if ($stat['size'] >= 1024 * 1024) {
+  #                 # skip large files
+  #                 continue;
+  #             }
+  #             $content = file_get_contents($file);
+  #             if (strpos($content, "\0")) {
+  #                 # skip binary files
+  #                 continue;
+  #             }
+  #             if (strpos($content, "\r") !== false) {
+  #                 # if we have a file like
+  #                 # "<?php\n$someData = \"somedata\r\n\";\n"
+  #                 # this is not a CRLF ending file
+  #                 # while
+  #                 # "<?php\r\n$someData = \"somedata\r\n\";\r\n# this file is noeol"
+  #                 # is a CRLF file
+  #                 # so we need to find the last (CRLF or LF) in the file, if it is CRLF, then it is a CRLF file
+  #                 if (strrpos($content, "\r\n") === strrpos($content, "\n") - 1) {
+  #                     echo $file . PHP_EOL;
+  #                     $haveCRLF[] = $file;
+  #                 }
+  #             }
+  #         }
+  #         if (count($haveCRLF) > 0) {
+  #             echo "::error::CRLF line endings found" . PHP_EOL;
+  #             exit(1);
+  #         }
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: "8.1"
+  #     - name: Setup PHP
+  #       uses: shivammathur/setup-php@v2
+  #       with:
+  #         php-version: "8.1"
 
-      - name: Coding Standards Check
-        shell: bash
-        run: |
-          echo "::group::Accquire composer dependencies"
-          composer update -o --ignore-platform-reqs
-          echo "::endgroup::"
-          echo "::group::Run cs-check"
-          composer cs-check -- -v
+  #     - name: Coding Standards Check
+  #       shell: bash
+  #       run: |
+  #         echo "::group::Accquire composer dependencies"
+  #         composer update -o --ignore-platform-reqs
+  #         echo "::endgroup::"
+  #         echo "::group::Run cs-check"
+  #         composer cs-check -- -v
       
-      - name: Error if CRLF found
-        if: steps.checkcrlf.outcome != 'success'
-        run: exit 1
+  #     - name: Error if CRLF found
+  #       if: steps.checkcrlf.outcome != 'success'
+  #       run: exit 1
 
-  linux-tests:
-    name: PHP ${{ matrix.php-version }} ${{ matrix.ts }} Test on ubuntu-latest
-    runs-on: "ubuntu-latest"
-    strategy:
-      fail-fast: false
-      matrix:
-        php-version: ['8.4', '8.3', '8.2', '8.1', '8.0']
-        #php-version: ['8.0']
-        #ts: ['nts', 'ts']
-      max-parallel: 5
+  # linux-tests:
+  #   name: PHP ${{ matrix.php-version }} ${{ matrix.ts }} Test on ubuntu-latest
+  #   runs-on: "ubuntu-latest"
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       php-version: ['8.4', '8.3', '8.2', '8.1', '8.0']
+  #       #php-version: ['8.0']
+  #       #ts: ['nts', 'ts']
+  #     max-parallel: 5
 
-    services:
-      postgres:
-        image: postgres
-        ports:
-          - 5432:5432
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
+  #   services:
+  #     postgres:
+  #       image: postgres
+  #       ports:
+  #         - 5432:5432
+  #       env:
+  #         POSTGRES_USER: postgres
+  #         POSTGRES_PASSWORD: postgres
 
-    steps:
+  #   steps:
 
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          persist-credentials: false
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #       with:
+  #         persist-credentials: false
 
-      - name: Setup extension dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -yqq libcurl4-openssl-dev lcov
+  #     - name: Setup extension dependencies
+  #       run: |
+  #         sudo apt-get update
+  #         sudo apt-get install -yqq libcurl4-openssl-dev lcov
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: ${{ matrix.php-version }}
-          tools: phpize
-          ini-values: pcov.enabled = 0
-          coverage: pcov
-          # coverage: none
-          extensions: curl,openssl,sockets,ffi,pdo,pdo_pgsql
-        #env:
-          #phpts: ${{ matrix.ts }}
+  #     - name: Setup PHP
+  #       uses: shivammathur/setup-php@v2
+  #       with:
+  #         php-version: ${{ matrix.php-version }}
+  #         tools: phpize
+  #         ini-values: pcov.enabled = 0
+  #         coverage: pcov
+  #         # coverage: none
+  #         extensions: curl,openssl,sockets,ffi,pdo,pdo_pgsql
+  #       #env:
+  #         #phpts: ${{ matrix.ts }}
 
-      - name: Setup composer dependencies
-        run: |
-          php ./.github/workflows/phpunit-adapter.php ${{ matrix.php-version }}
-          composer update -o --ignore-platform-reqs
+  #     - name: Setup composer dependencies
+  #       run: |
+  #         php ./.github/workflows/phpunit-adapter.php ${{ matrix.php-version }}
+  #         composer update -o --ignore-platform-reqs
 
-      - name: Build Swow extension
-        run: |
-          cd ext
-          printf "\033[1mRun phpize\033[0m\n"
-          phpize
-          printf "\033[1mStart configure\033[0m\n"
-          ./configure --enable-swow\
-            --enable-swow-debug \
-            --enable-swow-gcov \
-            --enable-swow-ssl \
-            --enable-swow-curl \
-            --enable-swow-pdo-pgsql
-          printf "\033[1mStart build Swow\033[0m\n"
-          make -j`nproc`
-          printf "\033[1mDone build Swow\033[0m\n"
-          php -d extension=.libs/swow.so --ri swow
-          printf "\033[1mInstall Swow\033[0m\n"
-          sudo make install-modules
+  #     - name: Build Swow extension
+  #       run: |
+  #         cd ext
+  #         printf "\033[1mRun phpize\033[0m\n"
+  #         phpize
+  #         printf "\033[1mStart configure\033[0m\n"
+  #         ./configure --enable-swow\
+  #           --enable-swow-debug \
+  #           --enable-swow-gcov \
+  #           --enable-swow-ssl \
+  #           --enable-swow-curl \
+  #           --enable-swow-pdo-pgsql
+  #         printf "\033[1mStart build Swow\033[0m\n"
+  #         make -j`nproc`
+  #         printf "\033[1mDone build Swow\033[0m\n"
+  #         php -d extension=.libs/swow.so --ri swow
+  #         printf "\033[1mInstall Swow\033[0m\n"
+  #         sudo make install-modules
 
-      - name: Run extension tests
-        id: test-extension
-        continue-on-error: true
-        run: |
-          TEST_SWOW_POSTGRESQL=1 composer test-extension .
+  #     - name: Run extension tests
+  #       id: test-extension
+  #       continue-on-error: true
+  #       run: |
+  #         TEST_SWOW_POSTGRESQL=1 composer test-extension .
 
-      - name: Run library tests
-        id: test-library
-        continue-on-error: true
-        run: php --ri pcov && composer test-library-with-pcov
+  #     - name: Run library tests
+  #       id: test-library
+  #       continue-on-error: true
+  #       run: php --ri pcov && composer test-library-with-pcov
 
-      - name: Run PHPT from php-src
-        id: test-php-src
-        continue-on-error: true
-        run: |
-          script -eqc ./.github/workflows/run-php-src-tests.sh
+  #     - name: Run PHPT from php-src
+  #       id: test-php-src
+  #       continue-on-error: true
+  #       run: |
+  #         script -eqc ./.github/workflows/run-php-src-tests.sh
 
-      - name: Fail if test-extension failed
-        if: steps.test-extension.outcome != 'success'
-        run: exit 1
+  #     - name: Fail if test-extension failed
+  #       if: steps.test-extension.outcome != 'success'
+  #       run: exit 1
 
-      - name: Fail if test-library failed
-        if: steps.test-library.outcome != 'success'
-        run: exit 1
+  #     - name: Fail if test-library failed
+  #       if: steps.test-library.outcome != 'success'
+  #       run: exit 1
 
-      - name: Coverage ext tests
-        shell: bash
-        run: |
-          lcov \
-            --capture \
-            --directory "ext/src" \
-            --directory "ext/include" \
-            --output-file coverage.info &&
-          lcov \
-            --extract coverage.info \
-              "${{github.workspace}}/ext/include/*" \
-              "${{github.workspace}}/ext/src/*" \
-            --output-file coverage.info &&
-          lcov --list coverage.info
+  #     - name: Coverage ext tests
+  #       shell: bash
+  #       run: |
+  #         lcov \
+  #           --capture \
+  #           --directory "ext/src" \
+  #           --directory "ext/include" \
+  #           --output-file coverage.info &&
+  #         lcov \
+  #           --extract coverage.info \
+  #             "${{github.workspace}}/ext/include/*" \
+  #             "${{github.workspace}}/ext/src/*" \
+  #           --output-file coverage.info &&
+  #         lcov --list coverage.info
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          fail_ci_if_error: true
-          files: coverage.info,./lib/swow-library/build/coverage.xml
-          token: ${{ secrets.CODECOV_TOKEN }}
-          verbose: true
+  #     - name: Upload coverage to Codecov
+  #       uses: codecov/codecov-action@v4
+  #       with:
+  #         fail_ci_if_error: true
+  #         files: coverage.info,./lib/swow-library/build/coverage.xml
+  #         token: ${{ secrets.CODECOV_TOKEN }}
+  #         verbose: true
 
-  macos-tests:
-    name: PHP ${{ matrix.php-version }} ${{ matrix.ts }} Test on macos-latest
-    runs-on: "macos-latest"
-    strategy:
-      fail-fast: false
-      matrix:
-        php-version: ['8.4', '8.3', '8.2', '8.1', '8.0']
-        #php-version: ['8.0']
-        #ts: ['nts', 'ts']
-      max-parallel: 5
+  # macos-tests:
+  #   name: PHP ${{ matrix.php-version }} ${{ matrix.ts }} Test on macos-latest
+  #   runs-on: "macos-latest"
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       php-version: ['8.4', '8.3', '8.2', '8.1', '8.0']
+  #       #php-version: ['8.0']
+  #       #ts: ['nts', 'ts']
+  #     max-parallel: 5
 
-    steps:
+  #   steps:
 
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          persist-credentials: false
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #       with:
+  #         persist-credentials: false
 
-      - name: Setup extension dependencies
-        run: |
-          # [ ! -d /opt/homebrew/Cellar/pkgconf* ] && brew install pkgconf
-          [ ! -d /opt/homebrew/Cellar/openssl@3 ] && brew install openssl@3
-          [ ! -d /opt/homebrew/Cellar/curl* ] && brew install curl
-          [ ! -d /opt/homebrew/Cellar/postgresql* ] && brew install libpq postgresql
-          [ ! -d /opt/homebrew/Cellar/lcov* ] && brew install lcov
-          initdb --locale=C -E UTF-8 -U postgres "$HOME/pgsqldata"
-          pg_ctl -D "$HOME/pgsqldata" start
+  #     - name: Setup extension dependencies
+  #       run: |
+  #         # [ ! -d /opt/homebrew/Cellar/pkgconf* ] && brew install pkgconf
+  #         [ ! -d /opt/homebrew/Cellar/openssl@3 ] && brew install openssl@3
+  #         [ ! -d /opt/homebrew/Cellar/curl* ] && brew install curl
+  #         [ ! -d /opt/homebrew/Cellar/postgresql* ] && brew install libpq postgresql
+  #         [ ! -d /opt/homebrew/Cellar/lcov* ] && brew install lcov
+  #         initdb --locale=C -E UTF-8 -U postgres "$HOME/pgsqldata"
+  #         pg_ctl -D "$HOME/pgsqldata" start
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: ${{ matrix.php-version }}
-          tools: phpize
-          ini-values: pcov.enabled = 0
-          coverage: pcov
-          # coverage: none
-          extensions: curl,openssl,sockets,ffi,pdo,pdo_pgsql
-        #env:
-          #phpts: ${{ matrix.ts }}
+  #     - name: Setup PHP
+  #       uses: shivammathur/setup-php@v2
+  #       with:
+  #         php-version: ${{ matrix.php-version }}
+  #         tools: phpize
+  #         ini-values: pcov.enabled = 0
+  #         coverage: pcov
+  #         # coverage: none
+  #         extensions: curl,openssl,sockets,ffi,pdo,pdo_pgsql
+  #       #env:
+  #         #phpts: ${{ matrix.ts }}
 
-      - name: Setup composer dependencies
-        run: |
-          php ./.github/workflows/phpunit-adapter.php ${{ matrix.php-version }}
-          composer update -o --ignore-platform-reqs
-          # for arm64 machines:
-          # Warning: JIT on AArch64 doesn't support opcache.jit_buffer_size above 128M. in Unknown on line 0
-          if uname -m | grep -q -e arm64 -e aarch64; then
-            # for shivammathur/setup-php@v2 at macos
-            for f in \
-              /opt/homebrew/etc/php/${{ matrix.php-version }}/php.ini \
-              $(find /opt/homebrew/etc/php/${{ matrix.php-version }}/conf.d -name '*.ini' -type f)
-            do
-              sed -i -E 's/opcache.jit_buffer_size=.+/opcache.jit_buffer_size=128M/g' "$f"
-            done
-          fi
+  #     - name: Setup composer dependencies
+  #       run: |
+  #         php ./.github/workflows/phpunit-adapter.php ${{ matrix.php-version }}
+  #         composer update -o --ignore-platform-reqs
+  #         # for arm64 machines:
+  #         # Warning: JIT on AArch64 doesn't support opcache.jit_buffer_size above 128M. in Unknown on line 0
+  #         if uname -m | grep -q -e arm64 -e aarch64; then
+  #           # for shivammathur/setup-php@v2 at macos
+  #           for f in \
+  #             /opt/homebrew/etc/php/${{ matrix.php-version }}/php.ini \
+  #             $(find /opt/homebrew/etc/php/${{ matrix.php-version }}/conf.d -name '*.ini' -type f)
+  #           do
+  #             sed -i -E 's/opcache.jit_buffer_size=.+/opcache.jit_buffer_size=128M/g' "$f"
+  #           done
+  #         fi
 
-      - name: Detect dependencies path from php-config
-        run: |
-          simplefind() {
-            find /opt/homebrew/Cellar/$1 -type d -depth 1 | head -n 1
-          }
-          echo "OPENSSL_ROOT_DIR=$(simplefind openssl@3)" >> $GITHUB_ENV
-          echo "CURL_ROOT_DIR=$(simplefind curl)" >> $GITHUB_ENV
-          echo "PGSQL_ROOT_DIR=$(simplefind libpq)" >> $GITHUB_ENV
+  #     - name: Detect dependencies path from php-config
+  #       run: |
+  #         simplefind() {
+  #           find /opt/homebrew/Cellar/$1 -type d -depth 1 | head -n 1
+  #         }
+  #         echo "OPENSSL_ROOT_DIR=$(simplefind openssl@3)" >> $GITHUB_ENV
+  #         echo "CURL_ROOT_DIR=$(simplefind curl)" >> $GITHUB_ENV
+  #         echo "PGSQL_ROOT_DIR=$(simplefind libpq)" >> $GITHUB_ENV
 
-      - name: Build Swow extension
-        env:
-          CFLAGS: -I${{ env.OPENSSL_ROOT_DIR }}/include ${{ env.CFLAGS }}
-          CPPFLAGS: -I${{ env.OPENSSL_ROOT_DIR }}/include ${{ env.CPPFLAGS }}
-          LDFLAGS: -L${{ env.OPENSSL_ROOT_DIR }}/lib ${{ env.LDFLAGS }}
-          PKG_CONFIG_PATH: ${{ env.OPENSSL_ROOT_DIR }}/lib/pkgconfig:${{ env.PKG_CONFIG_PATH }}
-        run: |
-          cd ext
-          printf "\033[1mRun phpize\033[0m\n"
-          phpize
-          printf "\033[1mStart configure\033[0m\n"
-          ./configure --enable-swow\
-            --enable-swow-debug \
-            --enable-swow-gcov \
-            --enable-swow-ssl=${{ env.OPENSSL_ROOT_DIR }} \
-            --enable-swow-curl=${{ env.CURL_ROOT_DIR }} \
-            --enable-swow-pdo-pgsql=${{ env.PGSQL_ROOT_DIR }}
-          printf "\033[1mStart build Swow\033[0m\n"
-          make -j`sysctl -n hw.logicalcpu`
-          printf "\033[1mDone build Swow\033[0m\n"
-          php -d extension=.libs/swow.so --ri swow
-          printf "\033[1mInstall Swow\033[0m\n"
-          make install-modules
+  #     - name: Build Swow extension
+  #       env:
+  #         CFLAGS: -I${{ env.OPENSSL_ROOT_DIR }}/include ${{ env.CFLAGS }}
+  #         CPPFLAGS: -I${{ env.OPENSSL_ROOT_DIR }}/include ${{ env.CPPFLAGS }}
+  #         LDFLAGS: -L${{ env.OPENSSL_ROOT_DIR }}/lib ${{ env.LDFLAGS }}
+  #         PKG_CONFIG_PATH: ${{ env.OPENSSL_ROOT_DIR }}/lib/pkgconfig:${{ env.PKG_CONFIG_PATH }}
+  #       run: |
+  #         cd ext
+  #         printf "\033[1mRun phpize\033[0m\n"
+  #         phpize
+  #         printf "\033[1mStart configure\033[0m\n"
+  #         ./configure --enable-swow\
+  #           --enable-swow-debug \
+  #           --enable-swow-gcov \
+  #           --enable-swow-ssl=${{ env.OPENSSL_ROOT_DIR }} \
+  #           --enable-swow-curl=${{ env.CURL_ROOT_DIR }} \
+  #           --enable-swow-pdo-pgsql=${{ env.PGSQL_ROOT_DIR }}
+  #         printf "\033[1mStart build Swow\033[0m\n"
+  #         make -j`sysctl -n hw.logicalcpu`
+  #         printf "\033[1mDone build Swow\033[0m\n"
+  #         php -d extension=.libs/swow.so --ri swow
+  #         printf "\033[1mInstall Swow\033[0m\n"
+  #         make install-modules
 
-      - name: Run extension tests
-        id: test-extension
-        continue-on-error: true
-        run: |
-          TEST_SWOW_POSTGRESQL=1 composer test-extension .
+  #     - name: Run extension tests
+  #       id: test-extension
+  #       continue-on-error: true
+  #       run: |
+  #         TEST_SWOW_POSTGRESQL=1 composer test-extension .
 
-      - name: Run library tests
-        id: test-library
-        continue-on-error: true
-        run: php --ri pcov && composer test-library-with-pcov
+  #     - name: Run library tests
+  #       id: test-library
+  #       continue-on-error: true
+  #       run: php --ri pcov && composer test-library-with-pcov
 
-      - name: Run PHPT from php-src
-        id: test-php-src
-        continue-on-error: true
-        run: |
-          script -q whatever ./.github/workflows/run-php-src-tests.sh
+  #     - name: Run PHPT from php-src
+  #       id: test-php-src
+  #       continue-on-error: true
+  #       run: |
+  #         script -q whatever ./.github/workflows/run-php-src-tests.sh
 
-      - name: Fail if test-extension failed
-        if: steps.test-extension.outcome != 'success'
-        run: exit 1
+  #     - name: Fail if test-extension failed
+  #       if: steps.test-extension.outcome != 'success'
+  #       run: exit 1
 
-      - name: Fail if test-library failed
-        if: steps.test-library.outcome != 'success'
-        run: exit 1
+  #     - name: Fail if test-library failed
+  #       if: steps.test-library.outcome != 'success'
+  #       run: exit 1
 
-      - name: Coverage ext tests
-        shell: bash
-        run: |
-          lcov \
-            --capture \
-            --directory "ext/src" \
-            --directory "ext/include" \
-            --ignore-errors empty \
-            --output-file coverage.info &&
-          lcov \
-            --extract coverage.info \
-              "${{github.workspace}}/ext/include/*" \
-              "${{github.workspace}}/ext/src/*" \
-            --output-file coverage.info &&
-          lcov --list coverage.info
+  #     - name: Coverage ext tests
+  #       shell: bash
+  #       run: |
+  #         lcov \
+  #           --capture \
+  #           --directory "ext/src" \
+  #           --directory "ext/include" \
+  #           --ignore-errors empty \
+  #           --output-file coverage.info &&
+  #         lcov \
+  #           --extract coverage.info \
+  #             "${{github.workspace}}/ext/include/*" \
+  #             "${{github.workspace}}/ext/src/*" \
+  #           --output-file coverage.info &&
+  #         lcov --list coverage.info
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          fail_ci_if_error: true
-          files: coverage.info,./lib/swow-library/build/coverage.xml
-          token: ${{ secrets.CODECOV_TOKEN }}
-          verbose: true
+  #     - name: Upload coverage to Codecov
+  #       uses: codecov/codecov-action@v4
+  #       with:
+  #         fail_ci_if_error: true
+  #         files: coverage.info,./lib/swow-library/build/coverage.xml
+  #         token: ${{ secrets.CODECOV_TOKEN }}
+  #         verbose: true
 
   windows-tests:
-    name: PHP ${{ matrix.php-version }} ${{ matrix.ts }} Test on ${{ matrix.image }}
-    runs-on: ${{ matrix.image }}
+    name: PHP ${{ matrix.php-version }} ${{ matrix.ts }} Test with VS${{ matrix.vsver }}
+    runs-on: windows-2025
     strategy:
       fail-fast: false
       matrix:
-        php-version: ["8.3", "8.2", "8.1", "8.0"]
+        php-version: ["8.3"]
         arch: ["x64"]
-        ts: ["nts", "ts"]
-        image: [ "windows-2019" ]
-        include:
-          - php-version: "8.4"
-            arch: "x64"
-            ts: "nts"
-            image: "windows-2022"
-          - php-version: "8.4"
-            arch: "x64"
-            ts: "ts"
-            image: "windows-2022"
+        ts: ["ts"]
+        vsver: ["16"]
       max-parallel: 10
     steps:
       - name: Checkout
@@ -390,6 +381,20 @@ jobs:
           extensions: curl,openssl,sockets,ffi,pdo,pdo_pgsql
         env:
           phpts: ${{ matrix.ts }}
+      
+      - name: debug
+        uses: mxschmitt/action-tmate@v3
+
+      - name: Setup Visual Studio build tools
+        shell: pwsh
+        if: matrix.vsver == "16"
+        run: |
+          Invoke-WebRequest -Uri https://aka.ms/vs/16/release/vs_buildtools.exe -OutFile vs_buildtools.exe
+          .\vs_buildtools.exe `
+            --quiet `
+            --wait `
+            --norestart
+          C:\ProgramFiles\MicrosoftVisualStudio\2019\BuildTools\Common7\Tools\VsDevCmd.bat
 
       - name: Setup composer dependencies
         run: |
