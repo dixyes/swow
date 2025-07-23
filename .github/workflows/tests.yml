@@ -381,20 +381,45 @@ jobs:
           extensions: curl,openssl,sockets,ffi,pdo,pdo_pgsql
         env:
           phpts: ${{ matrix.ts }}
-      
-      - name: debug
-        uses: mxschmitt/action-tmate@v3
+
+      # - name: debug
+      #   uses: mxschmitt/action-tmate@v3
+
+      - name: Restore cache for Visual Studio build tools
+        uses: actions/cache/restore@v4
+        id: restore-cache
+        if: matrix.vsver == '16'
+        with:
+          path: C:\ProgramData\Microsoft\VisualStudio\Packages
+          key: ${{ runner.os }}-vs${{ matrix.vsver }}-buildtools
 
       - name: Setup Visual Studio build tools
         shell: pwsh
         if: matrix.vsver == '16'
         run: |
           Invoke-WebRequest -Uri https://aka.ms/vs/16/release/vs_buildtools.exe -OutFile vs_buildtools.exe
-          .\vs_buildtools.exe `
-            --quiet `
-            --wait `
-            --norestart
-          C:\ProgramFiles\MicrosoftVisualStudio\2019\BuildTools\Common7\Tools\VsDevCmd.bat
+          $proc = Start-Process `
+            -Verb runas `
+            .\vs_buildtools.exe `
+            -Wait `
+            -PassThru `
+            -ArgumentList @(
+              '-p',
+              '--norestart',
+              '--wait',
+              '--config',
+              '.github/workflows/winext/.vsconfig'
+            )
+          if ($proc.ExitCode -ne 0) {
+            throw "Failed to install Visual Studio build tools: $($proc.ExitCode)"
+          }
+
+      - name: Save cache for Visual Studio build tools
+        uses: actions/cache/save@v4
+        if: matrix.vsver == '16' && steps.restore-cache.outputs.cache-hit != true
+        with:
+          path: C:\ProgramData\Microsoft\VisualStudio\Packages
+          key: ${{ runner.os }}-vs${{ matrix.vsver }}-buildtools
 
       - name: Setup composer dependencies
         run: |
